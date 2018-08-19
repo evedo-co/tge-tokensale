@@ -10,8 +10,7 @@ module.exports = async function (deployer) {
   await deployer.deploy(EvedoToken, totalTokenSupply)
   await deployer.deploy(EvedoTokenSale, rate, collectorWallet, EvedoToken.address)
 
-  // transfer the tokens for the CrowdSale // OPTIONAL can be done letter
-
+  // transfer the tokens for the CrowdSale
   const token = EvedoToken.at(EvedoToken.address)
   token.transfer(EvedoTokenSale.address, totalTokensForSale)
 }

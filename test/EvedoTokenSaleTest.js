@@ -7,13 +7,16 @@ contract('EvedoTokenSale', function (accounts) {
   let tokenContract
   let crowdsaleContract
   const creatorAccount = accounts[0]
-  const secondAccount = accounts[1]
+  const userAccount = accounts[1]
   const decimals = 18
-  const initialAmount = new BigNumber(180).times(new BigNumber(10).pow(6 + decimals))
+  const totalNumberOfTokens = new BigNumber(160).times(new BigNumber(10).pow(6 + decimals))
+  const tokensForSale = new BigNumber(80).times(new BigNumber(10).pow(6 + decimals))
 
   let init = async () => {
-    tokenContract = await EvedoTokenContract.new(initialAmount)
+    tokenContract = await EvedoTokenContract.new(totalNumberOfTokens)
     crowdsaleContract = await EvedoTokenSaleContract.new(2700, creatorAccount, tokenContract.address)
+    // the contract needs to own the takens for sale
+    tokenContract.transfer(crowdsaleContract.address, tokensForSale)
   }
 
   describe('Creation', () => {
@@ -43,6 +46,29 @@ contract('EvedoTokenSale', function (accounts) {
       expect(stage8[0].toNumber()).to.equal(2000)
       expect(web3.fromWei(stage8[1]).toNumber()).to.equal(300000)
       expect(stage8[2].toNumber()).to.equal(0)
+    })
+  })
+
+  describe('Stage 1. Exclusive sale', () => {
+    beforeEach(init)
+
+    it('Sender should be able to buy tokens', async () => {
+      let initialOwnerBalance = await web3.eth.getBalance(creatorAccount)
+      console.log('Initial owner balance', web3.fromWei(initialOwnerBalance).toString())
+      // when user sends 1 eth to EvedoTokenSale contract
+      await web3.eth.sendTransaction({
+        from: userAccount,
+        to: crowdsaleContract.address,
+        value: web3.toWei('1', 'Ether')
+      })
+      let userTokenBalance = await tokenContract.balanceOf.call(userAccount)
+      console.log('User Token Balance', userTokenBalance)
+      expect(userTokenBalance.toNumber()).to.equal(2700)
+
+      // check that funds have been transferred
+      let balanceAfterSale = await tokenContract.balanceOf.call(creatorAccount)
+      console.log('Owner Balance After sale', web3.fromWei(balanceAfterSale).toString())
+      expect(web3.fromWei(initialOwnerBalance.minus(balanceAfterSale))).to.equal(1)
     })
   })
 })
