@@ -1,6 +1,9 @@
 const EvedoTokenContract = artifacts.require('EvedoToken')
 const BigNumber = require('bignumber.js')
-const expect = require('chai').expect
+const chai = require('chai')
+chai.use(require('chai-bignumber')(BigNumber))
+const expect = chai.expect
+const expectRevert = require('./helpers').expectRevert
 
 contract('EvedoToken', function (accounts) {
   let tokenContract
@@ -18,9 +21,9 @@ contract('EvedoToken', function (accounts) {
 
     it('should give all the initial balance to the creator', async () => {
       let balance = await tokenContract.balanceOf.call(creatorAccount)
-      expect(balance.toNumber()).to.equal(initialAmount.toNumber())
+      expect(balance).bignumber.to.equal(initialAmount)
       let decimalsResult = await tokenContract.decimals.call()
-      expect(decimalsResult.toNumber()).to.equal(decimals)
+      expect(decimalsResult).bignumber.to.equal(decimals)
       let symbol = await tokenContract.symbol.call()
       expect(symbol).to.equal('EVED')
     })
@@ -30,36 +33,20 @@ contract('EvedoToken', function (accounts) {
     beforeEach(init)
 
     it('ether transfer should be reversed.', async () => {
-      let expectedError
-      try {
-        await web3.eth.sendTransaction({
-          from: creatorAccount,
-          to: tokenContract.address,
-          value: web3.toWei('10', 'Ether')
-        })
-      } catch (e) {
-        expectedError = e
-        let balanceAfter = await tokenContract.balanceOf.call(creatorAccount)
-        expect(balanceAfter.toNumber()).to.equal(initialAmount.toNumber())
-      }
-      assert.ok(expectedError)
+      await expectRevert(tokenContract.sendTransaction({from: secondAccount, value: web3.toWei(10, 'Ether')}))
+      let balanceAfter = await tokenContract.balanceOf.call(creatorAccount)
+      expect(balanceAfter).bignumber.to.equal(initialAmount)
     })
 
     it('should transfer all tokens', async () => {
       let success = await tokenContract.transfer(secondAccount, initialAmount, {from: creatorAccount})
       assert.ok(success)
       let balance = await tokenContract.balanceOf.call(secondAccount)
-      expect(balance.toNumber()).to.equal(initialAmount.toNumber())
+      expect(balance).bignumber.to.equal(initialAmount)
     })
 
     it('should fail when trying to transfer initialAmount + 1', async () => {
-      let expectedError
-      try {
-        await tokenContract.transfer(secondAccount, initialAmount.add(1), {from: creatorAccount})
-      } catch (e) {
-        expectedError = e
-      }
-      assert.ok(expectedError)
+      await expectRevert(tokenContract.transfer(secondAccount, initialAmount.add(1), {from: creatorAccount}))
     })
 
     it('transfers: should transfer 1 token', async () => {
@@ -90,15 +77,15 @@ contract('EvedoToken', function (accounts) {
       expect(approvalLog.args.value.toString()).to.equal('100')
 
       let allowance = await tokenContract.allowance.call(sender, secondAccount)
-      expect(allowance.toNumber()).to.equal(100)
+      expect(allowance).bignumber.to.equal(100)
       let success = await tokenContract.transferFrom(sender, accounts[2], 20, {from: secondAccount})
       assert.ok(success)
       allowance = await tokenContract.allowance.call(sender, secondAccount)
-      expect(allowance.toNumber()).to.equal(80)
+      expect(allowance).bignumber.to.equal(80)
       let balance = await tokenContract.balanceOf.call(accounts[2])
-      expect(balance.toNumber()).to.equal(20)
+      expect(balance).bignumber.to.equal(20)
       balance = await tokenContract.balanceOf.call(creatorAccount)
-      expect(balance.plus(20).toNumber()).to.equal(initialAmount.toNumber())
+      expect(balance.plus(20)).bignumber.to.equal(initialAmount)
     })
 
     it('when msg.sender approves 100 to accounts[1] then account[1] should not be able to withdraw 101 from msg.sender', async () => {
@@ -108,25 +95,13 @@ contract('EvedoToken', function (accounts) {
       assert.ok(success)
 
       let allowance = await tokenContract.allowance.call(sender, secondAccount)
-      expect(allowance.toNumber()).to.equal(100)
+      expect(allowance).bignumber.to.equal(100)
 
-      let expectedError
-      try {
-        await tokenContract.transferFrom(sender, accounts[2], 101, {from: secondAccount})
-      } catch (e) {
-        expectedError = e
-      }
-      assert.ok(expectedError)
+      await expectRevert(tokenContract.transferFrom(sender, accounts[2], 101, {from: secondAccount}))
     })
 
     it('withdrawal from account with no allowance should fail', async () => {
-      let expectedError
-      try {
-        await tokenContract.transferFrom(creatorAccount, accounts[2], 60, {from: accounts[1]})
-      } catch (e) {
-        expectedError = e
-      }
-      assert.ok(expectedError)
+      await expectRevert(tokenContract.transferFrom(creatorAccount, accounts[2], 60, {from: accounts[1]}))
     })
   })
 })
