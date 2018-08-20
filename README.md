@@ -36,11 +36,12 @@ A stage is completed when cap is reached or manually by the owner.
 
     npm install -g ganache-cli
     npm install
+    ganache-cli -e 10000
     npm test
     
 ### Deploy locally
 
-* Start testrpc
+* Start ganache-cli
 * Deploy the contracts using truffle: ```truffle migrate```
 * Then launch truffle console to play with the contracts: ```truffle console```  
 

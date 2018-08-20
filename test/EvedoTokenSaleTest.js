@@ -84,5 +84,14 @@ contract('EvedoTokenSale', function (accounts) {
       // when user sends 0 eth to EvedoTokenSale contract
       await expectRevert(crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(0, 'ether')}))
     })
+
+    it.only('Sender should be able to send 2000 eth max', async () => {
+      await crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(2000, 'ether')})
+      await expectRevert(crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(10, 'ether')}))
+      let userTokenBalance = await tokenContract.balanceOf.call(userAccount)
+      console.log('User Token Balance', userTokenBalance.toNumber())
+      const expectedTokenBalance = new BigNumber(2700 * 2000).times(new BigNumber(10).pow(decimals))
+      expect(userTokenBalance).to.bignumber.equal(expectedTokenBalance)
+    })
   })
 })
