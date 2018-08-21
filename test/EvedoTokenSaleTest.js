@@ -94,4 +94,33 @@ contract('EvedoTokenSale', function (accounts) {
       expect(userTokenBalance).to.bignumber.equal(expectedTokenBalance)
     })
   })
+
+  describe('Stage 2. Pre-sale', () => {
+    beforeEach(init)
+
+    it.only('Sender should be able to buy tokens', async () => {
+      let initialOwnerEthBalance = await web3.eth.getBalance(creatorAccount)
+      crowdsaleContract.setStage(1)
+      // when user sends 1 eth to EvedoTokenSale contract
+      await crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(1, 'ether')})
+      let userTokenBalance = await tokenContract.balanceOf.call(userAccount)
+      const expectedTokenBalance = new BigNumber(2600).times(new BigNumber(10).pow(decimals))
+      expect(userTokenBalance).to.bignumber.equal(expectedTokenBalance)
+
+      // check that funds have been transferred
+      let ownerEthBalanceAfterSale = await web3.eth.getBalance(creatorAccount)
+      console.log('Owner Balance After sale', web3.fromWei(ownerEthBalanceAfterSale).toString())
+      expect(web3.fromWei(ownerEthBalanceAfterSale.minus(initialOwnerEthBalance))).to.bignumber.be.greaterThan(0.9)
+    })
+
+    it.only('Sender should be able to send 6000 eth max', async () => {
+      crowdsaleContract.setStage(1)
+      await crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(6000, 'ether')})
+      await expectRevert(crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(10, 'ether')}))
+      let userTokenBalance = await tokenContract.balanceOf.call(userAccount)
+      console.log('User Token Balance', userTokenBalance.toNumber())
+      const expectedTokenBalance = new BigNumber(2600 * 6000).times(new BigNumber(10).pow(decimals))
+      expect(userTokenBalance).to.bignumber.equal(expectedTokenBalance)
+    })
+  })
 })
