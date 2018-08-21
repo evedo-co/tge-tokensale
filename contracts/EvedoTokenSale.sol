@@ -22,7 +22,7 @@ contract EvedoTokenSale is Crowdsale, Ownable {
 
   uint public currentStage = 0;
 
-  uint public tokensSold = 0;
+  uint public tokensAvailable = 0;
 
   bool private isOpen = true;
 
@@ -36,7 +36,7 @@ contract EvedoTokenSale is Crowdsale, Ownable {
   * @param _wallet the address of the owner
   * @param _token the address of the token contract
   */
-  constructor(uint256 _rate, address _wallet, ERC20 _token) public Crowdsale(_rate, _wallet, _token) {
+  constructor(uint256 _rate, address _wallet, EvedoToken _token) public Crowdsale(_rate, _wallet, _token) {
     // hardcode stages
     stages[0] = Stage(2700, 2000 * (10 ** 18), 0);
     stages[1] = Stage(2600, 6000 * (10 ** 18), 0);
@@ -68,8 +68,13 @@ contract EvedoTokenSale is Crowdsale, Ownable {
     isOpen = false;
   }
 
+  /**
+  * Closes the sale and burns remaining tokens
+  */
   function finalize() public onlyOwner {
     isOpen = false;
+    uint remainingTokens = token.balanceOf(this);
+    token.burn(remainingTokens);
   }
 
   function _preValidatePurchase(address _beneficiary, uint256 _weiAmount) internal isSaleOpen {

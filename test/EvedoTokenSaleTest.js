@@ -159,9 +159,13 @@ contract('EvedoTokenSale', function (accounts) {
   describe('Finalise', () => {
     beforeEach(init)
 
-    it('when finalised no sale is possible', async () => {
+    it('when finalised no sale is possible and unsold tokens are burnt', async () => {
       await crowdsaleContract.finalize()
       await expectRevert(crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(1, 'ether')}))
+      let tokenBalance = await tokenContract.balanceOf.call(crowdsaleContract.address)
+      expect(tokenBalance).bignumber.to.equal(0)
+      let ownerTokenBalance = await tokenContract.balanceOf.call(creatorAccount)
+      expect(ownerTokenBalance).bignumber.to.equal(tokensForSale)
     })
 
     it('Only owner can finalise', async () => {

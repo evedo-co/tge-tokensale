@@ -29,6 +29,8 @@ Stages:
 
 A stage is completed when cap is reached or manually by the owner.
 
+When the crowdsale is finalised, the remaining tokens are burned.
+
 
 ## Test and Deployment
 
@@ -47,10 +49,16 @@ A stage is completed when cap is reached or manually by the owner.
 
 ### Deploy on test nets and main net
 
-We won't use truffle migrations to deploy to main net. We'll use ```truffle-flattener```
+* We won't use truffle migrations to deploy to main net. We'll use ```truffle-flattener```
 
 ```npm install truffle-flattener -g```
 
-Use to concatenate all files, so the can be deployed using Remix and can be verified by Ethscan.
+* Use to concatenate all files, so the can be deployed using Remix and can be verified by Ethscan.
 
 ```truffle-flattener [files]```
+
+* Deploy the token contract first from the owner's wallet (needs to have eth)
+
+* Deploy the crowdsale contract after, by providing the address of the token and the wallet (can be the same as owner)
+
+* Form owner wallet transfer 80M tokens to the crowdsale contract address
