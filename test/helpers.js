@@ -10,6 +10,16 @@ async function expectRevert (promise) {
   throw new Error('Expected revert not received')
 }
 
+async function expectError (promise) {
+  try {
+    await promise
+  } catch (error) {
+    return
+  }
+  throw new Error('Expected error not received')
+}
+
 module.exports = {
-  expectRevert
+  expectRevert,
+  expectError
 }

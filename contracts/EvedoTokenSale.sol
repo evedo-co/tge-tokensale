@@ -9,7 +9,7 @@ contract EvedoTokenSale is Crowdsale, Ownable {
 
     using SafeMath for uint;
 
-    uint public constant HARD_CAP = 300000 * (10 ** 18);
+    uint public constant ETH_CAP = 300000 * (10 ** 18);
 
     struct Stage {
         uint stage_rate; // tokens for one ETH
@@ -40,19 +40,22 @@ contract EvedoTokenSale is Crowdsale, Ownable {
         stages[0] = Stage(2700, 2000 * (10 ** 18), 0);
         stages[1] = Stage(2600, 6000 * (10 ** 18), 0);
         stages[2] = Stage(2600, 6000 * (10 ** 18), 0);
-        stages[3] = Stage(2400, HARD_CAP, 0);
-        stages[4] = Stage(2300, HARD_CAP, 0);
-        stages[5] = Stage(2200, HARD_CAP, 0);
-        stages[6] = Stage(2100, HARD_CAP, 0);
-        stages[7] = Stage(2000, HARD_CAP, 0);
+        stages[3] = Stage(2400, ETH_CAP, 0);
+        stages[4] = Stage(2300, ETH_CAP, 0);
+        stages[5] = Stage(2200, ETH_CAP, 0);
+        stages[6] = Stage(2100, ETH_CAP, 0);
+        stages[7] = Stage(2000, ETH_CAP, 0);
 
         // call superclass constructor and set rate at current stage
         currentStage = 0;
     }
 
+    /**
+    * Set new crowdsale stage
+    */
     function setStage(uint _stage) public onlyOwner {
+        require(_stage > currentStage);
         currentStage = _stage;
-        // update rate
         rate = stages[currentStage].stage_rate;
     }
 
@@ -65,19 +68,13 @@ contract EvedoTokenSale is Crowdsale, Ownable {
     }
 
     function finalize() public onlyOwner {
-        // =================================
-        // send tokens to team, advisors and etc
-        // and we close the sales until owner dont open it
-
         isOpen = false;
     }
 
     function _preValidatePurchase(address _beneficiary, uint256 _weiAmount) internal isSaleOpen {
-        // make sure we don't raise more than cap
-        require(stages[currentStage].stage_raised < stages[currentStage].stage_cap, "");
-
+        // make sure we don't raise more than cap for each stage
+        require(stages[currentStage].stage_raised < stages[currentStage].stage_cap, "Stage Cap reached");
         stages[currentStage].stage_raised = stages[currentStage].stage_raised.add(_weiAmount);
-
         super._preValidatePurchase(_beneficiary, _weiAmount);
     }
 }

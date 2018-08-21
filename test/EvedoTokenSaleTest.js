@@ -5,6 +5,7 @@ const chai = require('chai')
 chai.use(require('chai-bignumber')(BigNumber))
 const expect = chai.expect
 const expectRevert = require('./helpers').expectRevert
+const expectError = require('./helpers').expectError
 
 contract('EvedoTokenSale', function (accounts) {
   let tokenContract
@@ -85,7 +86,7 @@ contract('EvedoTokenSale', function (accounts) {
       await expectRevert(crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(0, 'ether')}))
     })
 
-    it.only('Sender should be able to send 2000 eth max', async () => {
+    it('Sender should be able to send 2000 eth max', async () => {
       await crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(2000, 'ether')})
       await expectRevert(crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(10, 'ether')}))
       let userTokenBalance = await tokenContract.balanceOf.call(userAccount)
@@ -98,7 +99,7 @@ contract('EvedoTokenSale', function (accounts) {
   describe('Stage 2. Pre-sale', () => {
     beforeEach(init)
 
-    it.only('Sender should be able to buy tokens', async () => {
+    it('Sender should be able to buy tokens', async () => {
       let initialOwnerEthBalance = await web3.eth.getBalance(creatorAccount)
       crowdsaleContract.setStage(1)
       // when user sends 1 eth to EvedoTokenSale contract
@@ -113,7 +114,7 @@ contract('EvedoTokenSale', function (accounts) {
       expect(web3.fromWei(ownerEthBalanceAfterSale.minus(initialOwnerEthBalance))).to.bignumber.be.greaterThan(0.9)
     })
 
-    it.only('Sender should be able to send 6000 eth max', async () => {
+    it('Sender should be able to send 6000 eth max', async () => {
       crowdsaleContract.setStage(1)
       await crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(6000, 'ether')})
       await expectRevert(crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(10, 'ether')}))
@@ -121,6 +122,50 @@ contract('EvedoTokenSale', function (accounts) {
       console.log('User Token Balance', userTokenBalance.toNumber())
       const expectedTokenBalance = new BigNumber(2600 * 6000).times(new BigNumber(10).pow(decimals))
       expect(userTokenBalance).to.bignumber.equal(expectedTokenBalance)
+    })
+  })
+
+  describe('Stage switching', () => {
+    beforeEach(init)
+
+    it('Stage needs to be between 0 and 7', async () => {
+      await expectError(crowdsaleContract.setStage(8))
+    })
+
+    it('Stage can only go up', async () => {
+      await crowdsaleContract.setStage(3)
+      await expectRevert(crowdsaleContract.setStage(1))
+    })
+
+    it('Only owner can set stage', async () => {
+      await expectRevert(crowdsaleContract.setStage(1, {from: userAccount}))
+    })
+  })
+
+  describe('Open/Clause', () => {
+    beforeEach(init)
+
+    it('when closed no sale is possible', async () => {
+      await crowdsaleContract.close()
+      await expectRevert(crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(1, 'ether')}))
+    })
+
+    it('Only owner can open/close', async () => {
+      await expectRevert(crowdsaleContract.open({from: userAccount}))
+      await expectRevert(crowdsaleContract.close({from: userAccount}))
+    })
+  })
+
+  describe('Finalise', () => {
+    beforeEach(init)
+
+    it('when finalised no sale is possible', async () => {
+      await crowdsaleContract.finalize()
+      await expectRevert(crowdsaleContract.sendTransaction({from: userAccount, value: web3.toWei(1, 'ether')}))
+    })
+
+    it('Only owner can finalise', async () => {
+      await expectRevert(crowdsaleContract.finalize({from: userAccount}))
     })
   })
 })
