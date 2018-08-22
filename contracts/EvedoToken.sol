@@ -5,11 +5,11 @@ import "./Ownable.sol";
 
 
 /**
- * The Smart contract for They Party Token. Based on OpenZeppelin: https://github.com/OpenZeppelin/openzeppelin-solidity
+ * The Smart contract for Evedo Token. Based on OpenZeppelin: https://github.com/OpenZeppelin/openzeppelin-solidity
  */
 contract EvedoToken is BurnableToken, Ownable {
 
-  string public name = "ThePartyToken";
+  string public name = "Evedo Token";
   string public symbol = "EVED";
   uint8 public decimals = 18;
 
