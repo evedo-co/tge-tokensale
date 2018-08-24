@@ -6,11 +6,12 @@ import "./EvedoToken.sol";
 import "./ERC20.sol";
 
 
-contract EvedoTokenSale is Crowdsale, Ownable {
+contract EvedoCrowdSale is Crowdsale, Ownable {
 
   using SafeMath for uint;
 
-  uint public constant ETH_CAP = 300000 * (10 ** 18);
+  // 160M tokens at 2000 per eth is 80 000 ETH
+  uint public constant ETH_CAP = 80000 * (10 ** 18);
 
   struct Stage {
     uint stageRate; // tokens for one ETH
@@ -18,11 +19,9 @@ contract EvedoTokenSale is Crowdsale, Ownable {
     uint stageRaised; // amount raised in ETH
   }
 
-  Stage[8] public stages;
+  Stage[7] public stages;
 
   uint public currentStage = 0;
-
-  uint public tokensAvailable = 0;
 
   bool private isOpen = true;
 
@@ -38,14 +37,13 @@ contract EvedoTokenSale is Crowdsale, Ownable {
   */
   constructor(uint256 _rate, address _wallet, EvedoToken _token) public Crowdsale(_rate, _wallet, _token) {
     // hardcode stages
-    stages[0] = Stage(2700, 2000 * (10 ** 18), 0);
+    stages[0] = Stage(2600, 6000 * (10 ** 18), 0);
     stages[1] = Stage(2600, 6000 * (10 ** 18), 0);
-    stages[2] = Stage(2600, 6000 * (10 ** 18), 0);
-    stages[3] = Stage(2400, ETH_CAP, 0);
-    stages[4] = Stage(2300, ETH_CAP, 0);
-    stages[5] = Stage(2200, ETH_CAP, 0);
-    stages[6] = Stage(2100, ETH_CAP, 0);
-    stages[7] = Stage(2000, ETH_CAP, 0);
+    stages[2] = Stage(2400, ETH_CAP, 0);
+    stages[3] = Stage(2300, ETH_CAP, 0);
+    stages[4] = Stage(2200, ETH_CAP, 0);
+    stages[5] = Stage(2100, ETH_CAP, 0);
+    stages[6] = Stage(2000, ETH_CAP, 0);
 
     // call superclass constructor and set rate at current stage
     currentStage = 0;

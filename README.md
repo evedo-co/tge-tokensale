@@ -14,7 +14,7 @@
 
 * Regulated by a smart contract - EvedoTokenSale
 * 50% of the tokens are available for crowdsale (80M)
-* TGE rate is 1 ETH = 2 000 EVD
+* TGE rate is 1 ETH = 2 000 EVED
 
 Stages:
 
