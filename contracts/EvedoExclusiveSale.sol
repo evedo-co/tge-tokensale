@@ -5,6 +5,7 @@ import "./Ownable.sol";
 import "./EvedoToken.sol";
 import "./ERC20.sol";
 
+
 /**
 * Contract for the Exclusive crowd sale only
 */

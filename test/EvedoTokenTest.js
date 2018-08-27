@@ -13,7 +13,7 @@ contract('EvedoToken', function (accounts) {
   const initialAmount = new BigNumber(100).times(new BigNumber(10).pow(6 + decimals))
 
   let init = async () => {
-    tokenContract = await EvedoTokenContract.new(initialAmount)
+    tokenContract = await EvedoTokenContract.new(initialAmount, {from: creatorAccount})
   }
 
   describe('Creation', () => {
@@ -108,7 +108,7 @@ contract('EvedoToken', function (accounts) {
   describe('Token Burning', () => {
     beforeEach(init)
 
-    it('only owner should be able to burn tokens', async () => {
+    it('only token holder should be able to burn tokens', async () => {
       await expectRevert(tokenContract.burn(1, {from: userAccount}))
     })
 

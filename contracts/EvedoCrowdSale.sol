@@ -67,12 +67,10 @@ contract EvedoCrowdSale is Crowdsale, Ownable {
   }
 
   /**
-  * Closes the sale and burns remaining tokens
+  * Closes the sale
   */
   function finalize() public onlyOwner {
     isOpen = false;
-    uint remainingTokens = token.balanceOf(this);
-    token.burn(remainingTokens);
   }
 
   function _preValidatePurchase(address _beneficiary, uint256 _weiAmount) internal isSaleOpen {
